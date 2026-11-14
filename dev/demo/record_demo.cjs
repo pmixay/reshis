@@ -47,10 +47,11 @@ const pause = (page, ms) => page.waitForTimeout(ms);
   const login = `manager${Date.now() % 100000}`;
   await page.type("#register-form input[name=name]", "Анна Менеджер", { delay: 60 });
   await page.type("#register-form input[name=login]", login, { delay: 60 });
-  await page.type("#register-form input[name=password]", "short", { delay: 60 });
-  await page.type("#register-form input[name=password2]", "short", { delay: 60 });
+  await page.type("#register-form input[name=password]", "password", { delay: 60 });
+  await page.type("#register-form input[name=password2]", "password", { delay: 60 });
   await page.click("#register-form button[type=submit]");
-  await caption(page, "Проверка пароля: слишком короткий пароль не принимается");
+  await page.waitForSelector("#auth-error:not([hidden])");
+  await caption(page, "Проверка пароля на сервере: нужны и буквы, и цифры");
   await pause(page, 2500);
   await page.fill("#register-form input[name=password]", "");
   await page.fill("#register-form input[name=password2]", "");
@@ -132,11 +133,6 @@ const pause = (page, ms) => page.waitForTimeout(ms);
   await page.click("#login-form button[type=submit]");
   await page.waitForSelector("#app-view:not([hidden])");
   await caption(page, "Вход выполнен: история расчётов сохранилась");
-  await pause(page, 3000);
-
-  // Мобильная версия
-  await page.setViewportSize({ width: 420, height: 800 });
-  await caption(page, "Адаптивная вёрстка для телефона");
   await pause(page, 3000);
 
   const video = page.video();
