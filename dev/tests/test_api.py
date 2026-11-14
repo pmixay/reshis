@@ -72,3 +72,6 @@ def test_index_and_static(client):
     assert "Content-Security-Policy" in r.headers
     assert client.get("/static/js/main.js").status_code == 200
     assert client.get("/static/vendor/chart.umd.min.js").status_code == 200
+    assert client.get("/static/nope.js").status_code == 404
+    assert client.get("/api/nope").status_code == 404
+    assert "Решись Авиа" in client.get("/some/page").text      # прочие пути отдают страницу приложения

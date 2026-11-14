@@ -142,7 +142,7 @@ def create_app(store: ForecastStore | None = None, db: Database | None = None) -
     # ---------- веб-страница ----------
     @app.exception_handler(404)
     async def not_found(request: Request, exc):
-        if request.url.path.startswith("/api/"):
+        if request.url.path.startswith(("/api/", "/static/")):
             detail = getattr(exc, "detail", "Не найдено")
             return JSONResponse({"detail": detail}, status_code=404)
         return FileResponse(STATIC_DIR / "index.html")
