@@ -1,0 +1,5 @@
+# Окружение ML-части (Python 3.12). На CPU:
+#   pip install -r ml/requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+autogluon.timeseries==1.6.3
+matplotlib
+jupyter

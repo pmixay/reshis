@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # 1 — если сайт открывается по HTTPS (cookie сессии только по защищённому соединению)
+      COOKIE_SECURE: "0"
+    volumes:
+      - appdata:/data
+    restart: unless-stopped
+volumes:
+  appdata:

@@ -1,0 +1,17 @@
+{
+  "name": "reshis-forecast-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Frontend (TypeScript) сервиса прогноза продаж «Решись Авиа»",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-vendor.cjs",
+    "watch": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "chart.js": "4.5.0"
+  }
+}
