@@ -17,7 +17,7 @@ async function smoothScroll(page, dy, steps = 30) {
   const state = await api.storageState();
   await api.dispose();
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ args: ["--lang=ru-RU"], env: { ...process.env, LANG: "ru_RU.UTF-8", LANGUAGE: "ru_RU:ru", LC_ALL: "ru_RU.UTF-8" } });
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, storageState: state, locale: "ru-RU",
     recordVideo: { dir: __dirname, size: { width: 1280, height: 800 } } });
   const page = await ctx.newPage();

@@ -15,13 +15,10 @@
     <div class="topbar-inner">
       <div class="brand">
         <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
-        <div>
-          <div class="brand-name">Решись Авиа</div>
-          <div class="brand-sub">Прогноз продаж билетов</div>
-        </div>
+        <div class="brand-name">Решись Авиа</div>
       </div>
       <div id="user-box" class="user-box" hidden>
-        <div class="user-meta"><span id="user-name"></span><span id="user-login" class="muted"></span></div>
+        <span id="user-name" class="user-name"></span>
         <button id="logout-btn" class="btn btn-ghost" type="button">Выйти</button>
       </div>
     </div>
@@ -32,15 +29,7 @@
     <section id="auth-view" class="auth" hidden>
       <div class="auth-intro">
         <h1>Сколько билетов купят по вашей цене?</h1>
-        <p>Введите маршрут, дату вылета и цену, и сервис сразу покажет, сколько мест в самолёте, сколько билетов, скорее всего,
-          купят и сколько мест останется свободными. Прогноз построен ML-моделью по истории спроса и учитывает 9 сценариев:
-          от пессимистичного до оптимистичного.</p>
-        <ul class="feature-list">
-          <li>прогноз продаж с учётом числа мест</li>
-          <li>график распределения спроса при введённой цене</li>
-          <li>вероятность заполнения самолёта и рекомендуемая цена</li>
-          <li>история ваших расчётов</li>
-        </ul>
+        <p>Прогноз продаж по маршруту, дате и цене.</p>
       </div>
       <div class="card auth-card">
         <div class="tabs" role="tablist">
@@ -53,9 +42,9 @@
           <button class="btn btn-primary" type="submit">Войти</button>
         </form>
         <form id="register-form" class="form" autocomplete="on" hidden>
-          <label>Имя<input name="name" required maxlength="80" autocomplete="name" placeholder="Например, Анна"></label>
-          <label>Логин<input name="login" required minlength="3" maxlength="64" pattern="[A-Za-z0-9_.\-@]{3,64}" autocomplete="username" placeholder="латиница, цифры, _ . - @"></label>
-          <label>Пароль<input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="не короче 8 символов, буквы и цифры"></label>
+          <label>Имя<input name="name" required maxlength="80" autocomplete="name"></label>
+          <label>Логин<input name="login" required minlength="3" maxlength="64" pattern="[A-Za-z0-9_.\-@]{3,64}" autocomplete="username" placeholder="латиница и цифры"></label>
+          <label>Пароль<input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="от 8 символов, буквы и цифры"></label>
           <label>Повторите пароль<input name="password2" type="password" required minlength="8" maxlength="128" autocomplete="new-password"></label>
           <button class="btn btn-primary" type="submit">Зарегистрироваться</button>
         </form>
@@ -66,75 +55,59 @@
     <!-- ============ Основное приложение ============ -->
     <section id="app-view" class="app" hidden>
       <aside class="card form-card">
-        <h2>Параметры рейса</h2>
+        <h2>Рейс</h2>
         <form id="forecast-form" class="form" novalidate>
           <div class="row-2">
             <label>Откуда<select id="origin" required></select></label>
             <label>Куда<select id="destination" required></select></label>
           </div>
           <label>Дата вылета<input id="date" type="date" required></label>
-          <p id="date-hint" class="hint"></p>
           <label>Цена билета, ₽<input id="price" type="number" inputmode="numeric" step="100" min="1" required></label>
           <p id="price-hint" class="hint"></p>
           <div class="row-btns">
             <button id="btn-base-price" class="btn btn-ghost btn-sm" type="button">Базовая цена</button>
             <button id="btn-rec-price" class="btn btn-ghost btn-sm" type="button" disabled>Рекомендуемая</button>
           </div>
-          <button id="submit-btn" class="btn btn-primary" type="submit">Рассчитать прогноз</button>
+          <button id="submit-btn" class="btn btn-primary" type="submit">Рассчитать</button>
           <p id="form-error" class="error" role="alert" hidden></p>
         </form>
-        <div class="formula">
-          <div class="formula-title">Как считается</div>
-          <code>желают = спрос<sub>медиана</sub> - чувствительность × (цена - базовая)</code>
-          <code>купят = min(мест, max(0, желают))</code>
-        </div>
       </aside>
 
       <div class="results-col">
         <div id="results-empty" class="card empty">
-          <p>Заполните параметры рейса и нажмите «Рассчитать прогноз».</p>
+          <p>Выберите рейс и цену.</p>
         </div>
 
         <div id="results" hidden>
           <div class="card">
-            <div class="res-head">
-              <div>
-                <h2 id="res-title"></h2>
-                <p id="res-subtitle" class="muted"></p>
-              </div>
-            </div>
+            <h2 id="res-title"></h2>
+            <p id="res-subtitle" class="res-subtitle"></p>
             <div class="kpis">
-              <div class="kpi kpi-main"><div class="kpi-label">Купят билетов</div><div id="kpi-sold" class="kpi-value"></div></div>
-              <div class="kpi"><div class="kpi-label">Мест в самолётах</div><div id="kpi-seats" class="kpi-value"></div></div>
-              <div class="kpi"><div class="kpi-label">Свободно останется</div><div id="kpi-free" class="kpi-value"></div></div>
+              <div class="kpi kpi-main"><div class="kpi-label">Купят</div><div id="kpi-sold" class="kpi-value"></div></div>
+              <div class="kpi"><div class="kpi-label">Мест</div><div id="kpi-seats" class="kpi-value"></div></div>
+              <div class="kpi"><div class="kpi-label">Свободно</div><div id="kpi-free" class="kpi-value"></div></div>
               <div class="kpi"><div class="kpi-label">Загрузка</div><div id="kpi-load" class="kpi-value"></div></div>
-              <div class="kpi"><div class="kpi-label">Желают купить (медиана)</div><div id="kpi-wanted" class="kpi-value"></div></div>
-              <div class="kpi"><div class="kpi-label">Спрос при базовой цене</div><div id="kpi-base" class="kpi-value"></div></div>
-              <div class="kpi"><div class="kpi-label">Вероятность заполнения</div><div id="kpi-sellout" class="kpi-value"></div></div>
-              <div class="kpi"><div class="kpi-label">Рекомендуемая цена</div><div id="kpi-rec" class="kpi-value"></div></div>
-              <div class="kpi"><div class="kpi-label">Выручка</div><div id="kpi-revenue" class="kpi-value"></div></div>
-              <div class="kpi"><div class="kpi-label">Прибыль (за вычетом затрат на пассажиров)</div><div id="kpi-profit" class="kpi-value"></div></div>
+              <div class="kpi"><div class="kpi-label">Желают купить</div><div id="kpi-wanted" class="kpi-value"></div></div>
+              <div class="kpi"><div class="kpi-label">Заполнение</div><div id="kpi-sellout" class="kpi-value"></div></div>
+              <div class="kpi"><div class="kpi-label">Лучшая цена</div><div id="kpi-rec" class="kpi-value"></div></div>
+              <div class="kpi"><div class="kpi-label">Прибыль</div><div id="kpi-profit" class="kpi-value"></div></div>
             </div>
             <p id="res-note" class="note"></p>
           </div>
 
           <div class="card">
-            <h3>Сценарии спроса при этой цене</h3>
-            <p class="muted small">9 сценариев прогноза: 0.1 пессимистичный (спрос окажется ниже только в 10% случаев), 0.5 медиана, 0.9 оптимистичный.
-              Медиана совпадает с числом «желают купить», красная линия показывает число мест.</p>
+            <h3>Сценарии спроса</h3>
             <div class="chart-box"><canvas id="chart-scenarios" aria-label="График сценариев спроса" role="img"></canvas></div>
           </div>
 
           <div class="card">
             <h3>Распределение спроса</h3>
-            <p class="muted small">Насколько вероятен разный спрос при введённой цене: между соседними сценариями по 10% вероятности.
-              Оранжевая часть: пассажиры, которым не хватит мест (продажи упираются в число мест).</p>
             <div class="chart-box"><canvas id="chart-distribution" aria-label="График распределения спроса" role="img"></canvas></div>
             <details class="details">
-              <summary>Таблица сценариев</summary>
+              <summary>Все сценарии</summary>
               <div class="table-wrap">
                 <table class="table">
-                  <thead><tr><th>Сценарий</th><th>Спрос при базовой цене</th><th>Желают по вашей цене</th><th>Купят</th><th>Самолёт полон</th><th>Лучшая цена</th></tr></thead>
+                  <thead><tr><th>Сценарий</th><th>Спрос</th><th>Желают</th><th>Купят</th><th>Лучшая цена</th></tr></thead>
                   <tbody id="scenario-rows"></tbody>
                 </table>
               </div>
@@ -143,11 +116,11 @@
         </div>
 
         <div class="card">
-          <h3>История расчётов</h3>
-          <p id="history-empty" class="muted">Здесь появятся ваши последние расчёты.</p>
+          <h3>История</h3>
+          <p id="history-empty">Пока пусто.</p>
           <div class="table-wrap">
             <table id="history-table" class="table table-hover" hidden>
-              <thead><tr><th>Маршрут</th><th>Дата</th><th>Цена</th><th>Купят / мест</th></tr></thead>
+              <thead><tr><th>Маршрут</th><th>Дата</th><th>Цена</th><th>Купят</th></tr></thead>
               <tbody id="history-rows"></tbody>
             </table>
           </div>
@@ -156,8 +129,6 @@
     </section>
   </main>
 
-  <footer class="footer">
-    Данные прогноза: <span id="forecast-source"></span>. «Решись Авиа», кейс «Разработка»
-  </footer>
+  <footer class="footer">Данные: <span id="forecast-source"></span></footer>
 </body>
 </html>

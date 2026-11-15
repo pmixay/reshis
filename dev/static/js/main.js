@@ -23,7 +23,6 @@ function show(view) {
 }
 function setUser(user) {
     $("user-name").textContent = user.name;
-    $("user-login").textContent = `@${user.login}`;
     show("app");
     void loadHistory();
 }
@@ -116,9 +115,7 @@ function updatePriceHint() {
         return;
     price.min = "1";
     price.placeholder = String(r.base_price);
-    $("price-hint").textContent =
-        `Базовая цена ${rub(r.base_price)}, обычный диапазон от ${rub(r.price_min)} до ${rub(r.price_max)}. ` +
-            `Каждые +1 000 ₽ к цене: примерно на ${nf.format(r.price_sensitivity * 1000)} желающих меньше`;
+    $("price-hint").textContent = `Базовая цена ${rub(r.base_price)}`;
 }
 function initForm(m) {
     const origins = [...new Set(m.routes.map((r) => r.origin))];
@@ -128,7 +125,6 @@ function initForm(m) {
     date.min = m.date_min;
     date.max = m.date_max;
     date.value = m.date_min;
-    $("date-hint").textContent = `Прогноз есть на даты с ${fmtDate(m.date_min)} по ${fmtDate(m.date_max)}`;
     $("forecast-source").textContent = m.forecast_source;
     try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
@@ -203,16 +199,14 @@ function renderResult(r) {
     $("results-empty").hidden = true;
     $("results").hidden = false;
     $("res-title").textContent = `${r.route.origin} → ${r.route.destination}`;
-    $("res-subtitle").textContent = `${fmtDate(r.date)}, цена билета ${rub(r.price)}`;
+    $("res-subtitle").textContent = `${fmtDate(r.date)}, ${rub(r.price)}`;
     $("kpi-seats").textContent = nf.format(r.seats);
     $("kpi-sold").textContent = nf.format(r.sold);
     $("kpi-free").textContent = nf.format(r.free_seats);
     $("kpi-load").textContent = pct(r.load_factor);
     $("kpi-wanted").textContent = nf.format(Math.round(r.wanted));
-    $("kpi-base").textContent = nf.format(Math.round(r.base_demand_median));
     const sp = r.sellout_probability;
     $("kpi-sellout").textContent = sp.bound === "gt" ? `> ${pct(sp.p)}` : sp.bound === "lt" ? `< ${pct(sp.p)}` : pct(sp.p);
-    $("kpi-revenue").textContent = money(r.revenue);
     $("kpi-profit").textContent = money(r.profit);
     $("kpi-rec").textContent = r.recommended_price ? rub(r.recommended_price) : "нет данных";
     $("btn-rec-price").disabled = !r.recommended_price;
@@ -220,20 +214,19 @@ function renderResult(r) {
     note.className = "note";
     if (r.sold >= r.seats) {
         note.classList.add("note-warn");
-        note.textContent = `Продажи упираются в число мест: желающих ${nf.format(Math.round(r.wanted))}, а мест ${nf.format(r.seats)}. ` +
-            `Цену можно поднять: самолёт всё равно заполнится.`;
+        note.textContent = "Самолёт заполнится, цену можно поднять.";
     }
     else if (r.sold === 0) {
         note.classList.add("note-bad");
-        note.textContent = "При такой цене билеты, скорее всего, не купят. Попробуйте снизить цену.";
+        note.textContent = "При такой цене билеты не купят.";
     }
     else if (r.recommended_price && Math.abs(r.price - r.recommended_price) / r.recommended_price > 0.15) {
         note.classList.add("note-info");
-        note.textContent = `Рекомендуемая цена для медианного сценария: ${rub(r.recommended_price)}. При ней прибыль по прогнозу выше.`;
+        note.textContent = `Лучшая цена по прогнозу: ${rub(r.recommended_price)}.`;
     }
     else {
         note.classList.add("note-ok");
-        note.textContent = `Свободных мест останется ${nf.format(r.free_seats)} из ${nf.format(r.seats)} (загрузка ${pct(r.load_factor)}).`;
+        note.textContent = `Свободно ${nf.format(r.free_seats)} из ${nf.format(r.seats)} мест.`;
     }
     const tbody = $("scenario-rows");
     tbody.replaceChildren(...r.scenarios.map((s) => {
@@ -245,7 +238,6 @@ function renderResult(r) {
             nf.format(Math.round(s.base_demand)),
             nf.format(Math.max(0, Math.round(s.wanted))),
             nf.format(s.sold),
-            s.sold >= r.seats ? "да" : "нет",
             s.best_price ? rub(s.best_price) : "",
         ];
         cells.forEach((c) => {
@@ -276,7 +268,7 @@ function renderHistory(items) {
         tr.tabIndex = 0;
         tr.title = "Повторить расчёт";
         const [o, d] = it.name.split(" — ");
-        [`${o} → ${d}`, new Date(`${it.flight_date}T00:00:00`).toLocaleDateString("ru-RU"), rub(it.price), `${nf.format(it.sold)} / ${nf.format(it.seats)}`]
+        [`${o} → ${d}`, new Date(`${it.flight_date}T00:00:00`).toLocaleDateString("ru-RU"), rub(it.price), `${nf.format(it.sold)} из ${nf.format(it.seats)}`]
             .forEach((c) => {
             const td = document.createElement("td");
             td.textContent = c;

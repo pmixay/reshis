@@ -31,10 +31,10 @@ data = {
              "seats": int(aer["seats"].iloc[0])},
     # MAE на валидации с признаками и время обучения + прогноза (итоговый запуск ноутбука, задание 4)
     "models": [
-        {"name": "Ансамбль WeightedEnsemble", "mae": 33.85, "time": "18 мин"},
+        {"name": "Ансамбль", "mae": 33.85, "time": "18 мин"},
         {"name": "DirectTabular", "mae": 35.58, "time": "4 с"},
-        {"name": "Chronos-2 small, дообученная", "mae": 35.98, "time": "4,8 мин"},
-        {"name": "Chronos-2 (выбрана)", "mae": 36.52, "time": "5 с", "chosen": True},
+        {"name": "Chronos-2 small", "mae": 35.98, "time": "4,8 мин"},
+        {"name": "Chronos-2", "mae": 36.52, "time": "5 с", "chosen": True},
         {"name": "Toto-2", "mae": 41.29, "time": "1 с"},
         {"name": "SeasonalNaive", "mae": 51.54, "time": "0,1 с"},
     ],

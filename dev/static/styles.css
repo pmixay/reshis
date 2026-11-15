@@ -6,15 +6,16 @@
   --muted: #334155;
   --border: #e2e8f0;
   --grid: #e5e9f0;
-  --accent: #1d4ed8;
-  --accent-hover: #1e40af;
-  --accent-soft: #bfdbfe;
+  --accent: #6d28d9;
+  --accent-hover: #5b21b6;
+  --accent-soft: #ddd6fe;
   --accent-contrast: #ffffff;
-  --danger: #dc2626;
-  --over: #f97316;
+  --danger: #e11d48;
+  --over: #f59e0b;
+  --over-soft: #fde68a;
   --ok-bg: #ecfdf5; --ok-fg: #065f46;
   --warn-bg: #fff7ed; --warn-fg: #9a3412;
-  --info-bg: #eff6ff; --info-fg: #1e3a8a;
+  --info-bg: #f5f3ff; --info-fg: #4c1d95;
   --bad-bg: #fef2f2; --bad-fg: #991b1b;
   --radius: 14px;
   --shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 4px 16px rgba(15, 23, 42, .05);
@@ -23,20 +24,20 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0b1120; --surface: #111827; --surface-2: #0f172a; --text: #e5e7eb; --muted: #d1d9e6;
-    --border: #1f2937; --grid: #1f2a3a; --accent: #60a5fa; --accent-hover: #93c5fd; --accent-soft: #1e3a5f;
-    --accent-contrast: #0b1120; --danger: #f87171; --over: #fb923c;
+    --border: #1f2937; --grid: #1f2a3a; --accent: #a78bfa; --accent-hover: #c4b5fd; --accent-soft: #3b2a6b;
+    --accent-contrast: #0b1120; --danger: #fb7185; --over: #fbbf24; --over-soft: #5c4410;
     --ok-bg: #052e22; --ok-fg: #6ee7b7; --warn-bg: #2b1606; --warn-fg: #fdba74;
-    --info-bg: #0c1a3a; --info-fg: #93c5fd; --bad-bg: #2a0b0b; --bad-fg: #fca5a5;
+    --info-bg: #1e1440; --info-fg: #c4b5fd; --bad-bg: #2a0b0b; --bad-fg: #fca5a5;
     --shadow: 0 1px 2px rgba(0, 0, 0, .4);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0b1120; --surface: #111827; --surface-2: #0f172a; --text: #e5e7eb; --muted: #d1d9e6;
-  --border: #1f2937; --grid: #1f2a3a; --accent: #60a5fa; --accent-hover: #93c5fd; --accent-soft: #1e3a5f;
-  --accent-contrast: #0b1120; --danger: #f87171; --over: #fb923c;
+  --border: #1f2937; --grid: #1f2a3a; --accent: #a78bfa; --accent-hover: #c4b5fd; --accent-soft: #3b2a6b;
+  --accent-contrast: #0b1120; --danger: #fb7185; --over: #fbbf24; --over-soft: #5c4410;
   --ok-bg: #052e22; --ok-fg: #6ee7b7; --warn-bg: #2b1606; --warn-fg: #fdba74;
-  --info-bg: #0c1a3a; --info-fg: #93c5fd; --bad-bg: #2a0b0b; --bad-fg: #fca5a5;
+  --info-bg: #1e1440; --info-fg: #c4b5fd; --bad-bg: #2a0b0b; --bad-fg: #fca5a5;
   color-scheme: dark;
 }
 
@@ -62,11 +63,9 @@ p { margin: 0 0 .75rem; }
 .topbar-inner { max-width: 1240px; margin: 0 auto; padding: .75rem 16px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .brand { display: flex; align-items: center; gap: .65rem; }
 .brand-mark { width: 34px; height: 34px; padding: 6px; border-radius: 10px; background: var(--accent); fill: var(--accent-contrast); }
-.brand-name { font-weight: 700; }
-.brand-sub { font-size: .875rem; color: var(--text); }
+.brand-name { font-weight: 700; font-size: 1.1rem; }
 .user-box { display: flex; align-items: center; gap: .75rem; }
-.user-meta { display: flex; flex-direction: column; align-items: flex-end; font-size: .9rem; line-height: 1.2; }
-.user-meta .muted { font-size: .875rem; color: var(--text); }
+.user-name { font-weight: 600; }
 
 /* ---------- layout ---------- */
 .container { max-width: 1240px; width: 100%; margin: 0 auto; padding: 24px 16px 40px; flex: 1; }
@@ -82,9 +81,6 @@ p { margin: 0 0 .75rem; }
 /* ---------- auth ---------- */
 .auth { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 420px); gap: 32px; align-items: center; padding-top: 3vh; }
 .auth-intro p { color: var(--text); font-size: 1.1rem; }
-.feature-list { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: .5rem; }
-.feature-list li { padding-left: 1.6rem; position: relative; }
-.feature-list li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
 @media (max-width: 860px) { .auth { grid-template-columns: minmax(0, 1fr); } }
 .tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin-bottom: 1rem; }
 .tab { border: 0; background: transparent; color: var(--text); padding: .55rem; border-radius: 7px; font: inherit; font-weight: 600; cursor: pointer; }
@@ -114,16 +110,14 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
   border: 2px solid var(--accent-contrast); border-right-color: transparent; animation: spin .7s linear infinite; }
 .btn-ghost.is-busy::after { border-color: var(--text); border-right-color: transparent; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.formula { margin-top: 1.1rem; padding-top: 1rem; border-top: 1px dashed var(--border); display: grid; gap: .35rem; }
-.formula-title { font-size: .875rem; font-weight: 700; color: var(--text); text-transform: uppercase; letter-spacing: .04em; }
-.formula code { font-size: .85rem; background: var(--surface-2); border-radius: 6px; padding: .35rem .5rem; overflow-wrap: anywhere; }
 
 /* ---------- results ---------- */
 .empty { text-align: center; color: var(--text); padding: 48px 20px; }
 .res-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: .5rem 0 1rem; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 1rem 0; }
+.res-subtitle { margin: 0; }
 .kpi { background: var(--surface-2); border: 1px solid var(--border); border-radius: 11px; padding: .7rem .8rem; min-width: 0; }
-.kpi-label { font-size: .875rem; font-weight: 500; color: var(--text); line-height: 1.25; min-height: 2.2em; }
+.kpi-label { font-size: .9rem; font-weight: 500; color: var(--text); line-height: 1.25; }
 .kpi-value { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .kpi-main { background: var(--accent); border-color: var(--accent); }
 .kpi-main .kpi-label, .kpi-main .kpi-value { color: var(--accent-contrast); }
@@ -146,6 +140,6 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 
 .footer { text-align: center; color: var(--text); font-size: .9rem; padding: 16px; border-top: 1px solid var(--border); }
 @media (max-width: 600px) {
-  .brand-sub, .user-meta .muted { display: none; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi-value { font-size: 1.2rem; }
 }

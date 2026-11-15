@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Решись Авиа: видео о решении</title>
+<script src="../dev/static/vendor/chart.umd.min.js"></script>
+<script src="build/data.js"></script>
+<script src="build/timeline.js"></script>
+<style>
+  :root {
+    --bg: #f6f5fb; --surface: #ffffff; --border: #e4e1ef; --text: #0f172a;
+    --violet: #6d28d9; --violet-soft: #ede9fe; --line: #dcd7ec;
+    --amber: #d97706; --rose: #e11d48; --rose-soft: #ffe4e6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+  body { font-family: Inter, Arial, sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+
+  /* ---------- шапка с линией метро ---------- */
+  .top { position: absolute; left: 0; top: 0; width: 1920px; height: 128px; background: var(--surface); border-bottom: 1px solid var(--border); z-index: 5; }
+  .brand { position: absolute; left: 96px; top: 38px; display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 800; }
+  .mark { width: 52px; height: 52px; border-radius: 14px; background: var(--violet); display: grid; place-items: center; flex: none; }
+  .mark svg { width: 30px; height: 30px; fill: #fff; }
+  .metro { position: absolute; left: 0; top: 0; width: 1920px; height: 128px; }
+  .rail, .rail-fill { position: absolute; top: 47px; height: 6px; border-radius: 3px; }
+  .rail { background: var(--line); }
+  .rail-fill { background: var(--violet); }
+  .st { position: absolute; top: 50px; width: 0; height: 0; }
+  .st .dot { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); border-radius: 50%; background: #fff; border: 4px solid var(--line); }
+  .st .lbl { position: absolute; top: 26px; left: 0; transform: translateX(-50%); white-space: nowrap; font-size: 19px; font-weight: 600; }
+
+  /* ---------- сцены ---------- */
+  .scene { position: absolute; left: 0; top: 128px; width: 1920px; height: 952px; display: flex; flex-direction: column; justify-content: center; padding: 40px 96px 64px; opacity: 0; will-change: transform, opacity; }
+  h1 { font-size: 64px; line-height: 1.1; margin: 0 0 40px; letter-spacing: -.015em; }
+  h2 { font-size: 32px; margin: 0 0 22px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 36px; }
+  .row { display: grid; gap: 32px; align-items: start; }
+  .big { font-size: 76px; font-weight: 800; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .label { font-size: 26px; font-weight: 600; margin-bottom: 16px; }
+  .v { color: var(--violet); }
+  .r { color: var(--rose); }
+  .chip { display: inline-block; font-size: 22px; font-weight: 700; padding: 8px 16px; border-radius: 10px; background: var(--violet-soft); color: var(--violet); }
+  .chip.rose { background: var(--rose-soft); color: var(--rose); }
+  ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+  ul.list li { font-size: 28px; line-height: 1.3; padding-left: 42px; position: relative; font-weight: 500; }
+  ul.list li::before { content: ""; position: absolute; left: 0; top: 10px; width: 18px; height: 18px; border-radius: 5px; background: var(--violet); }
+  .chart-card { display: flex; flex-direction: column; }
+  .chart { position: relative; }
+  .legend { display: flex; flex-wrap: wrap; gap: 28px; margin: 0 0 18px; font-size: 22px; font-weight: 600; }
+  .legend span { display: inline-flex; align-items: center; gap: 10px; }
+  .legend i { display: inline-block; width: 28px; height: 6px; border-radius: 3px; }
+  .legend i.box { width: 22px; height: 22px; border-radius: 6px; }
+  .legend i.dash { height: 0; border-top: 4px dashed var(--rose); border-radius: 0; }
+  table.t { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 28px; }
+  table.t th { font-size: 22px; font-weight: 700; text-align: right; padding: 14px 20px; background: var(--violet-soft); color: var(--violet); }
+  table.t th:first-child { text-align: left; border-radius: 12px 0 0 12px; }
+  table.t th:last-child { border-radius: 0 12px 12px 0; }
+  table.t td { padding: 24px 20px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; }
+  table.t td:first-child { text-align: left; font-weight: 500; white-space: normal; }
+  table.t tr:last-child td { border-bottom: 0; font-weight: 800; }
+  .blocks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .block { display: flex; flex-direction: column; gap: 14px; padding: 40px; }
+  .num { width: 60px; height: 60px; border-radius: 16px; background: var(--violet); color: #fff; font-size: 30px; font-weight: 800; display: grid; place-items: center; margin-bottom: 10px; }
+  .block h3 { font-size: 33px; margin: 0; white-space: nowrap; }
+  .block p { font-size: 28px; margin: 0; line-height: 1.35; }
+  .ok { display: inline-flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700; color: var(--violet); margin-top: auto; padding-top: 16px; }
+  .ok i { width: 30px; height: 30px; border-radius: 50%; background: var(--violet); color: #fff; font-style: normal; display: inline-grid; place-items: center; font-size: 18px; }
+  .frame { width: 1136px; height: 710px; border-radius: 18px; border: 1px solid var(--border); background: #ebe8f4; overflow: hidden; }
+  .frame img { display: block; width: 100%; height: 100%; }
+  .tool { display: inline-block; font-size: 26px; font-weight: 600; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 18px; margin: 0 10px 14px 0; }
+  .ai { display: flex; align-items: center; gap: 26px; font-size: 28px; line-height: 1.35; }
+  .ai .mark { width: 72px; height: 72px; }
+  .learn h3 { font-size: 34px; line-height: 1.2; margin: 0 0 16px; }
+  .learn p { font-size: 27px; line-height: 1.4; margin: 0; }
+  .learn .n { font-size: 26px; font-weight: 800; color: var(--violet); margin-bottom: 18px; }
+  .final { display: grid; grid-template-columns: 1.15fr 1fr; gap: 32px; align-items: stretch; height: 540px; }
+  .res { display: flex; align-items: center; gap: 26px; padding: 30px 36px; }
+  .res .check { width: 56px; height: 56px; border-radius: 50%; background: var(--violet); color: #fff; display: grid; place-items: center; font-size: 30px; font-weight: 800; flex: none; }
+  .res b { display: block; font-size: 34px; margin-bottom: 6px; }
+  .res span { font-size: 28px; }
+  .thanks { background: var(--violet); color: #fff; border-radius: 22px; padding: 56px 64px; display: flex; flex-direction: column; justify-content: center; gap: 40px; }
+  .thanks .big { font-size: 120px; }
+  .thanks .repo { font-size: 32px; font-weight: 600; }
+  .thanks .repo small { display: block; font-size: 24px; font-weight: 500; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="brand"><div class="mark"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></div>Решись Авиа</div>
+  <div class="metro" id="metro"><div class="rail" id="rail"></div><div class="rail-fill" id="rail-fill"></div></div>
+</div>
+
+<!-- s1 -->
+<section class="scene" id="s1" data-station="Старт">
+  <h1 class="rv">Динамическое ценообразование авиабилетов</h1>
+  <div class="blocks">
+    <div class="card block rv"><div class="num">1</div><h3>Бизнес и аналитика</h3><p>Модель дня и лучшие цены</p><div class="ok"><i>✓</i>Выполнено</div></div>
+    <div class="card block rv"><div class="num">2</div><h3>Искусственный интеллект</h3><p>Прогноз спроса на июнь</p><div class="ok"><i>✓</i>Выполнено</div></div>
+    <div class="card block rv"><div class="num">3</div><h3>Разработка</h3><p>Сервис прогноза продаж</p><div class="ok"><i>✓</i>Выполнено</div></div>
+  </div>
+</section>
+
+<!-- s2 -->
+<section class="scene" id="s2" data-station="Модель">
+  <h1 class="rv">Модель одного дня самолёта</h1>
+  <div class="row" style="grid-template-columns: 760px 1fr">
+    <div class="card rv">
+      <h2>Пиковый день</h2>
+      <svg viewBox="0 0 690 400" style="width:100%;display:block">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a1a1b5"/></marker>
+              <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#e11d48"/></marker></defs>
+        <line x1="140" y1="110" x2="315" y2="190" stroke="#e11d48" stroke-width="8" marker-end="url(#arr)"/>
+        <line x1="322" y1="230" x2="150" y2="152" stroke="#c9c6d9" stroke-width="5" marker-end="url(#ar)"/>
+        <line x1="400" y1="196" x2="548" y2="282" stroke="#c9c6d9" stroke-width="5" marker-end="url(#ar)"/>
+        <line x1="544" y1="320" x2="390" y2="232" stroke="#c9c6d9" stroke-width="5" marker-end="url(#ar)"/>
+        <circle cx="100" cy="100" r="58" fill="#6d28d9"/><text x="100" y="114" text-anchor="middle" font-size="42" font-weight="800" fill="#fff">П</text>
+        <circle cx="360" cy="214" r="58" fill="#6d28d9"/><text x="360" y="228" text-anchor="middle" font-size="42" font-weight="800" fill="#fff">М</text>
+        <circle cx="590" cy="316" r="58" fill="#6d28d9"/><text x="590" y="330" text-anchor="middle" font-size="42" font-weight="800" fill="#fff">С</text>
+        <text x="220" y="70" font-size="30" font-weight="800" fill="#e11d48">150 из 150</text>
+        <text x="20" y="250" font-size="28" font-weight="600" fill="#0f172a">100 из 150</text>
+        <text x="470" y="196" font-size="28" font-weight="600" fill="#0f172a">70 из 150</text>
+        <text x="300" y="350" font-size="28" font-weight="600" fill="#0f172a">70 из 150</text>
+      </svg>
+      <div style="margin-top:20px"><span class="chip rose">Кресло на рейсе П→М стоит 4 тыс. ₽</span></div>
+    </div>
+    <div class="card rv">
+      <table class="t">
+        <tr><th>Лучшие цены</th><th>Обычный день</th><th>Пиковый день</th></tr>
+        <tr class="rv"><td>Петербург → Москва</td><td>5,5 тыс.</td><td class="v">11,5 тыс.</td></tr>
+        <tr class="rv"><td>Транзит Петербург → Сочи</td><td>6 тыс.</td><td class="v">8 тыс.</td></tr>
+        <tr class="rv"><td>Загрузка П→М</td><td>130 из 150</td><td>150 из 150</td></tr>
+        <tr class="rv"><td>Прибыль за день</td><td>705 тыс. ₽</td><td class="v">1 625 тыс. ₽</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- s3 -->
+<section class="scene" id="s3" data-station="Маршрут">
+  <h1 class="rv">Маршрут и риск снегопада</h1>
+  <div class="row" style="grid-template-columns: 1fr 1fr">
+    <div class="card rv">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px"><div class="label" style="margin:0">Маршрут без Сочи</div><span class="chip rose">Невыгодно</span></div>
+      <div class="big r" data-count="-335" data-suffix=" тыс. ₽">-335 тыс. ₽</div>
+      <table class="t" style="margin-top:30px">
+        <tr class="rv"><td>Второй рейс в Москву</td><td>+80 тыс.</td></tr>
+        <tr class="rv"><td>Потеря рынков Сочи</td><td class="r">-415 тыс.</td></tr>
+        <tr class="rv"><td>Прибыль пикового дня</td><td>1 290 вместо 1 625</td></tr>
+      </table>
+    </div>
+    <div class="card rv">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px"><div class="label" style="margin:0">Снегопад с вероятностью 0,2</div><span class="chip">Учтено в цене</span></div>
+      <div class="big v" data-count="20" data-prefix="+" data-suffix=" тыс. ₽">+20 тыс. ₽</div>
+      <table class="t" style="margin-top:30px">
+        <tr class="rv"><td>Цены на всех рынках</td><td>+0,5 тыс.</td></tr>
+        <tr class="rv"><td>Продано билетов</td><td>320 → 270</td></tr>
+        <tr class="rv"><td>Средняя прибыль</td><td>308 → 328 тыс.</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- s4 -->
+<section class="scene" id="s4" data-station="Данные">
+  <h1 class="rv">Данные: праздники и аномалии</h1>
+  <div class="row" style="grid-template-columns: 1.6fr 1fr">
+    <div class="card chart-card rv">
+      <h2>Майские праздники 2025, пассажиров в день</h2>
+      <div class="legend"><span><i style="background:#6d28d9"></i>Москва → Сочи</span><span><i style="background:#d97706"></i>Москва → Петербург</span><span><i class="box" style="background:#ede9fe"></i>Праздники</span></div>
+      <div class="chart draw" style="height:500px"><canvas id="c-hol"></canvas></div>
+    </div>
+    <div style="display:grid;gap:32px;align-content:start">
+      <div class="card rv">
+        <ul class="list">
+          <li class="rv">Туристические направления: рост в 1,5 раза</li>
+          <li class="rv">Деловой Петербург: спад почти вдвое</li>
+          <li class="rv">Даты известны заранее, это признаки</li>
+        </ul>
+      </div>
+      <div class="card chart-card rv">
+        <h2 style="margin-bottom:12px">Сочи, июль 2023</h2>
+        <div class="chart draw" style="height:180px"><canvas id="c-out"></canvas></div>
+        <div style="margin-top:12px"><span class="chip">Убран как шум</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- s5a -->
+<section class="scene" id="s5a" data-station="Модели">
+  <h1 class="rv">Модели: точность и скорость</h1>
+  <div class="row" style="grid-template-columns: 1.6fr 1fr">
+    <div class="card chart-card rv">
+      <h2>Ошибка на валидации, пассажиров</h2>
+      <div class="chart draw" style="height:540px"><canvas id="c-models"></canvas></div>
+    </div>
+    <div class="card rv">
+      <ul class="list">
+        <li class="rv">3 конфигурации AutoGluon</li>
+        <li class="rv">3 окна валидации</li>
+        <li class="rv">Признаки праздников: ошибка ниже на 7%</li>
+        <li class="rv">Chronos-2: 5 секунд вместо 18 минут</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- s5b -->
+<section class="scene" id="s5b" data-station="Прогноз">
+  <h1 class="rv">Прогноз на июнь</h1>
+  <div class="row" style="grid-template-columns: 1.6fr 1fr">
+    <div class="card chart-card rv">
+      <h2>Москва → Сочи, пассажиров в день</h2>
+      <div class="legend"><span><i style="background:#0f172a"></i>Факт мая</span><span><i style="background:#6d28d9"></i>Прогноз</span><span><i class="box" style="background:#ddd6fe"></i>Сценарии</span><span><i class="dash"></i>Мест: 900</span></div>
+      <div class="chart draw" style="height:500px"><canvas id="c-june"></canvas></div>
+    </div>
+    <div style="display:grid;gap:28px;align-content:start">
+      <div class="card rv"><div class="label">Ошибка на тесте</div><div class="big"><span data-count="40">40</span> <span style="font-size:36px">пасс.</span></div></div>
+      <div class="card rv"><div class="label">Ошибка от спроса</div><div class="big" data-count="7.8" data-dec="1" data-suffix="%">7,8%</div></div>
+      <div class="card rv"><div class="label">Дней внутри сценариев</div><div class="big" data-count="82" data-suffix="%">82%</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- s6 -->
+<section class="scene" id="s6" data-station="Сервис">
+  <h1 class="rv">Сервис прогноза продаж</h1>
+  <div class="row" style="grid-template-columns: 520px 1fr">
+    <div class="card rv">
+      <ul class="list">
+        <li class="rv">FastAPI и TypeScript</li>
+        <li class="rv">Места, продажи, свободные кресла</li>
+        <li class="rv">Графики спроса</li>
+        <li class="rv">Регистрация, вход, история</li>
+        <li class="rv">Docker, 19 тестов</li>
+      </ul>
+    </div>
+    <div class="frame rv"><img id="clip" alt=""></div>
+  </div>
+</section>
+
+<!-- s7 -->
+<section class="scene" id="s7" data-station="Инструменты">
+  <h1 class="rv">Инструменты</h1>
+  <div class="row" style="grid-template-columns: repeat(3, 1fr)">
+    <div class="card rv"><h2>Бизнес и аналитика</h2><span class="tool">Python</span><span class="tool">NumPy</span><span class="tool">SciPy</span></div>
+    <div class="card rv"><h2>Искусственный интеллект</h2><span class="tool">pandas</span><span class="tool">AutoGluon</span><span class="tool">Chronos-2</span><span class="tool">Jupyter</span></div>
+    <div class="card rv"><h2>Разработка</h2><span class="tool">FastAPI</span><span class="tool">TypeScript</span><span class="tool">Chart.js</span><span class="tool">SQLite</span><span class="tool">Docker</span></div>
+  </div>
+  <div class="card ai rv" style="margin-top:32px">
+    <div class="mark"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>
+    <div><b>ИИ-агент Claude Code от Anthropic</b><br>помогал писать код, цифры и решения проверены вручную</div>
+  </div>
+</section>
+
+<!-- s8 -->
+<section class="scene" id="s8" data-station="Выводы">
+  <h1 class="rv">Чему я научился</h1>
+  <div class="row" style="grid-template-columns: repeat(4, 1fr); align-items: stretch">
+    <div class="card learn rv"><div class="n">01</div><h3>У ресурса есть цена</h3><p>Теневая цена кресла объясняет дешёвый транзит</p></div>
+    <div class="card learn rv"><div class="n">02</div><h3>Риск это затраты</h3><p>Возможная компенсация поднимает цену</p></div>
+    <div class="card learn rv"><div class="n">03</div><h3>Точность не всё</h3><p>Важны скорость и качество сценариев</p></div>
+    <div class="card learn rv"><div class="n">04</div><h3>Продукт целиком</h3><p>От данных до сайта с авторизацией</p></div>
+  </div>
+</section>
+
+<!-- s9 -->
+<section class="scene" id="s9" data-station="Финал">
+  <h1 class="rv">Все три блока выполнены</h1>
+  <div class="final">
+    <div style="display:grid;gap:24px;grid-template-rows:repeat(3,1fr)">
+      <div class="card res rv"><div class="check">✓</div><div><b>Бизнес и аналитика</b><span>1 625 тыс. ₽ прибыли в пиковый день</span></div></div>
+      <div class="card res rv"><div class="check">✓</div><div><b>Искусственный интеллект</b><span>Ошибка прогноза 7,8% спроса</span></div></div>
+      <div class="card res rv"><div class="check">✓</div><div><b>Разработка</b><span>Веб-сервис с API и графиками</span></div></div>
+    </div>
+    <div class="thanks rv">
+      <div class="big">Спасибо!</div>
+      <div class="repo"><small>Код и материалы</small>github.com/pmixay/reshis</div>
+    </div>
+  </div>
+</section>
+
+<script>
+// ===================== графики (без встроенной анимации) =====================
+const V = window.VDATA;
+const C = { violet: "#6d28d9", soft: "#ddd6fe", amber: "#d97706", rose: "#e11d48", grid: "#ece9f3", text: "#0f172a", bar: "#d4d1e0" };
+Chart.defaults.font.family = "Inter, Arial, sans-serif";
+Chart.defaults.font.size = 22;
+Chart.defaults.color = C.text;
+Chart.defaults.animation = false;
+Chart.defaults.locale = "ru-RU";
+Chart.defaults.maintainAspectRatio = false;
+Chart.defaults.plugins.legend.display = false;
+const axes = (n = 8) => ({
+  x: { grid: { display: false }, ticks: { maxTicksLimit: n, maxRotation: 0 } },
+  y: { grid: { color: C.grid }, border: { display: false }, ticks: { maxTicksLimit: 6 } },
+});
+const shade = (labels, color) => ({ id: "shade", beforeDatasetsDraw(chart) {
+  const { ctx, chartArea, scales } = chart;
+  const w = (chartArea.right - chartArea.left) / (chart.data.labels.length - 1);
+  ctx.save(); ctx.fillStyle = color;
+  labels.forEach((l) => { const i = chart.data.labels.indexOf(l); if (i < 0) return;
+    ctx.fillRect(scales.x.getPixelForValue(i) - w / 2, chartArea.top, w, chartArea.bottom - chartArea.top); });
+  ctx.restore(); } });
+
+new Chart(document.getElementById("c-hol"), { type: "line",
+  data: { labels: V.holidays.labels, datasets: [
+    { data: V.holidays.aer, borderColor: C.violet, borderWidth: 4, pointRadius: 0 },
+    { data: V.holidays.led, borderColor: C.amber, borderWidth: 4, pointRadius: 0 } ] },
+  options: { scales: axes(9) }, plugins: [shade(V.holidays.shade, "#ede9fe")] });
+new Chart(document.getElementById("c-out"), { type: "line",
+  data: { labels: V.outage.labels, datasets: [{ data: V.outage.aer, borderColor: C.violet, borderWidth: 4, pointRadius: 0 }] },
+  options: { scales: { x: { display: false }, y: { grid: { color: C.grid }, border: { display: false }, ticks: { maxTicksLimit: 3 } } } } });
+const M = V.models;
+new Chart(document.getElementById("c-models"), { type: "bar",
+  data: { labels: M.map((x) => x.name), datasets: [{ data: M.map((x) => x.mae),
+    backgroundColor: M.map((x) => (x.chosen ? C.violet : C.bar)), borderRadius: 8, barPercentage: 0.72 }] },
+  options: { indexAxis: "y", layout: { padding: { right: 210 } },
+    scales: { x: { display: false, min: 0, max: 55 }, y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 24, weight: "600" } } } } },
+  plugins: [{ id: "lbl", afterDatasetsDraw(chart) {
+    const { ctx } = chart; ctx.save(); ctx.textBaseline = "middle";
+    chart.getDatasetMeta(0).data.forEach((bar, i) => {
+      ctx.fillStyle = M[i].chosen ? C.violet : C.text; ctx.font = "800 26px Inter, Arial";
+      const mae = M[i].mae.toFixed(1).replace(".", ","); ctx.fillText(mae, bar.x + 16, bar.y);
+      ctx.font = "600 24px Inter, Arial"; ctx.fillText(M[i].time, bar.x + 56 + ctx.measureText(mae).width, bar.y); });
+    ctx.restore(); } }] });
+const J = V.june;
+new Chart(document.getElementById("c-june"), { type: "line",
+  data: { labels: J.labels, datasets: [
+    { data: J.q1, borderColor: "transparent", pointRadius: 0, fill: false, order: 10 },
+    { data: J.q9, borderColor: "transparent", backgroundColor: C.soft, pointRadius: 0, fill: "-1", order: 9 },
+    { data: J.q5, borderColor: C.violet, borderWidth: 4, pointRadius: 0, order: 1 },
+    { data: J.fact, borderColor: C.text, borderWidth: 3.5, pointRadius: 0, order: 1 },
+    { data: J.labels.map(() => J.seats), borderColor: C.rose, borderDash: [12, 8], borderWidth: 3, pointRadius: 0, order: 0 } ] },
+  options: { scales: axes(8) } });
+
+// ===================== линия метро =====================
+const TL = window.TIMELINE;                       // {fps, scenes:[{id,start,end}], total, clipFrames}
+const scenes = TL.scenes.map((s) => ({ ...s, el: document.getElementById(s.id) }));
+const X0 = 520, X1 = 1824;
+const stationX = scenes.map((_, i) => X0 + (X1 - X0) * i / (scenes.length - 1));
+const metro = document.getElementById("metro");
+const rail = document.getElementById("rail"), fill = document.getElementById("rail-fill");
+rail.style.left = X0 + "px"; fill.style.left = X0 + "px";
+const stations = scenes.map((s, i) => {
+  const st = document.createElement("div"); st.className = "st"; st.style.left = stationX[i] + "px";
+  st.innerHTML = `<div class="dot"></div><div class="lbl">${s.el.dataset.station}</div>`;
+  metro.appendChild(st); return st;
+});
+
+// ===================== анимация =====================
+const T = 1.6;                                    // длительность перехода между страницами, с
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const easeIO = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const lerp = (a, b, p) => a + (b - a) * p;
+const fmt = (v, dec) => v.toLocaleString("ru-RU", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+const items = scenes.map((s) => [...s.el.querySelectorAll(".rv")]);
+const draws = scenes.map((s) => [...s.el.querySelectorAll(".draw")]);
+const counts = scenes.map((s) => [...s.el.querySelectorAll("[data-count]")]);
+const REVEAL0 = 0.45, STEP = 0.16, DUR = 0.9;     // появление элементов: старт, шаг, длительность
+
+// момент, когда сцена начинает появляться (на стыке начинается переход)
+const appear = scenes.map((s, i) => (i === 0 ? 0.6 : s.start - 0.1));
+
+function revealScene(i, t) {
+  const tau = t - appear[i];
+  items[i].forEach((el, k) => {
+    const p = easeOut(clamp((tau - REVEAL0 - STEP * k) / DUR));
+    el.style.opacity = p; el.style.transform = `translateY(${lerp(34, 0, p)}px)`;
+  });
+  draws[i].forEach((el, k) => {
+    const p = easeIO(clamp((tau - REVEAL0 - 0.5 - 0.3 * k) / 1.8));
+    el.style.clipPath = `inset(0 ${(1 - p) * 100}% 0 0)`;
+  });
+  counts[i].forEach((el) => {
+    const target = parseFloat(el.dataset.count), dec = +(el.dataset.dec || 0);
+    const p = easeOut(clamp((tau - REVEAL0 - 0.4) / 1.4));
+    el.textContent = (el.dataset.prefix || "") + fmt(target * p, dec) + (el.dataset.suffix || "");
+  });
+}
+
+const clipImg = document.getElementById("clip");
+async function setClip(t) {
+  const i = scenes.findIndex((s) => s.id === "s6");
+  const s = scenes[i];
+  const a = appear[i], b = s.end + T / 2;
+  if (t < a || t > b) return;
+  const p = clamp((t - (s.start)) / (s.end - s.start));
+  const k = Math.min(TL.clipFrames, Math.max(1, Math.round(p * (TL.clipFrames - 1)) + 1));
+  const src = `build/clip/f_${String(k).padStart(4, "0")}.jpg`;
+  if (!clipImg.src.endsWith(src)) { clipImg.src = src; await clipImg.decode().catch(() => {}); }
+}
+
+window.renderAt = async function (t) {
+  // какая пара страниц видна и прогресс перехода
+  let cur = scenes.findIndex((s) => t >= s.start && t < s.end);
+  if (cur < 0) cur = t < 0 ? 0 : scenes.length - 1;
+  scenes.forEach((s) => { s.el.style.opacity = 0; s.el.style.visibility = "hidden"; });
+  let from = cur, to = cur, p = 1;
+  const next = cur + 1, prev = cur - 1;
+  if (next < scenes.length && t > scenes[cur].end - T / 2) { from = cur; to = next; p = (t - (scenes[cur].end - T / 2)) / T; }
+  else if (prev >= 0 && t < scenes[cur].start + T / 2) { from = prev; to = cur; p = (t - (scenes[cur].start - T / 2)) / T; }
+  const e = easeIO(clamp(p));
+
+  const show = (i, op, dx) => { const el = scenes[i].el; el.style.visibility = "visible"; el.style.opacity = op;
+    el.style.transform = `translateX(${dx}px)`; revealScene(i, t); };
+  if (from === to) {
+    const intro = cur === 0 ? easeOut(clamp(t / 0.8)) : 1;
+    show(cur, intro, 0);
+  } else {
+    // сначала уходит старая страница, затем приходит новая (без наложения)
+    const out = easeIO(clamp(p * 2)), inn = easeOut(clamp(p * 2 - 1));
+    if (p < 0.5) show(from, 1 - out, lerp(0, -120, out));
+    else show(to, inn, lerp(120, 0, inn));
+  }
+
+  // линия метро: заполнение и станции
+  const intro = easeOut(clamp(t / 1.4));                       // в начале линия «прокладывается»
+  rail.style.width = (X1 - X0) * intro + "px";
+  const pos = from === to ? stationX[cur] : lerp(stationX[from], stationX[to], e);
+  fill.style.width = Math.max(0, (pos - X0) * intro) + "px";
+  stations.forEach((st, i) => {
+    const shown = clamp((t - 0.15 - i * 0.09) / 0.35);        // станции появляются по очереди
+    const dot = st.firstChild, lbl = st.lastChild;
+    let act = 0;                                                // насколько станция «текущая»
+    if (from === to) act = i === cur ? 1 : 0; else act = i === from ? 1 - e : i === to ? e : 0;
+    const passed = stationX[i] <= pos + 0.5;
+    const size = lerp(22, 38, act) * easeOut(shown);
+    dot.style.width = dot.style.height = size + "px";
+    dot.style.background = passed ? C.violet : "#fff";
+    dot.style.borderColor = passed ? C.violet : "#dcd7ec";
+    dot.style.boxShadow = act > 0.01 ? `0 0 0 ${10 * act}px rgba(109,40,217,${0.16 * act})` : "none";
+    lbl.style.opacity = shown;
+    lbl.style.color = act > 0.5 ? C.violet : C.text;
+    lbl.style.fontWeight = act > 0.5 ? "800" : "600";
+  });
+  await setClip(t);
+};
+// есть ли в кадре движение (иначе рендерер повторяет предыдущий кадр)
+window.isAnimating = function (t) {
+  if (t < 2.2) return true;
+  for (let i = 0; i < scenes.length; i++) {
+    const s = scenes[i];
+    if (Math.abs(t - s.start) < T / 2 + 0.05 && i > 0) return true;           // переход
+    const tau = t - appear[i];
+    const revealEnd = REVEAL0 + STEP * items[i].length + DUR + (draws[i].length ? 2.6 : 0) + (counts[i].length ? 1.9 : 0);
+    if (tau >= 0 && tau <= revealEnd && t < s.end + T / 2) return true;          // появление элементов
+    if (s.id === "s6" && t >= appear[i] && t <= s.end + T / 2) return true;     // запись сервиса
+  }
+  return false;
+};
+window.ready = true;
+</script>
+</body>
+</html>

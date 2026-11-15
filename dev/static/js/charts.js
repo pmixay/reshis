@@ -11,6 +11,7 @@ function palette() {
         grid: css("--grid"),
         text: css("--text"),
         over: css("--over"),
+        overSoft: css("--over-soft"),
     };
 }
 const charts = new Map();
@@ -33,7 +34,7 @@ export function renderScenarios(canvas, r) {
             datasets: [
                 {
                     type: "line",
-                    label: `Мест в самолётах: ${nf.format(r.seats)}`,
+                    label: `Мест: ${nf.format(r.seats)}`,
                     data: labels.map(() => r.seats),
                     borderColor: c.danger,
                     borderDash: [6, 4],
@@ -44,17 +45,19 @@ export function renderScenarios(canvas, r) {
                 {
                     label: "Желают купить",
                     data: wanted,
-                    backgroundColor: isMedian.map((m) => (m ? c.accentSoft : c.grid)),
-                    borderColor: isMedian.map((m) => (m ? c.accent : c.muted)),
-                    borderWidth: isMedian.map((m) => (m ? 2 : 1)),
+                    backgroundColor: c.accentSoft,
+                    borderColor: isMedian.map((m) => (m ? c.accent : c.accentSoft)),
+                    borderWidth: isMedian.map((m) => (m ? 2 : 0)),
+                    borderRadius: 4,
                     barPercentage: 0.9,
                     grouped: false,
                     order: 2,
                 },
                 {
-                    label: "Купят (с учётом мест)",
+                    label: "Купят",
                     data: sold,
                     backgroundColor: c.accent,
+                    borderRadius: 4,
                     barPercentage: 0.5,
                     grouped: false,
                     order: 1,
@@ -67,7 +70,7 @@ export function renderScenarios(canvas, r) {
             animation: { duration: 250 },
             interaction: { mode: "index", intersect: false },
             plugins: {
-                legend: { labels: { color: c.text, boxWidth: 14 } },
+                legend: { position: "bottom", labels: { color: c.text, usePointStyle: true, pointStyle: "rectRounded", boxWidth: 10, boxHeight: 10, padding: 14, font: { size: 13 } } },
                 tooltip: {
                     callbacks: {
                         title: (items) => {
@@ -82,13 +85,13 @@ export function renderScenarios(canvas, r) {
                 x: {
                     ticks: { color: c.muted, maxRotation: 0, autoSkip: false },
                     grid: { display: false },
-                    title: { display: true, text: "сценарий (квантиль прогноза)", color: c.muted },
+                    title: { display: false },
                 },
                 y: {
                     beginAtZero: true,
                     ticks: { color: c.muted, callback: (v) => nf.format(Number(v)) },
                     grid: { color: c.grid },
-                    title: { display: true, text: "пассажиров", color: c.muted },
+                    title: { display: false },
                 },
             },
         },
@@ -126,7 +129,8 @@ export function renderDistribution(canvas, r) {
     };
     const ymax = Math.max(...dens.map((d) => d.d)) * 1.15;
     const span = Math.max(dens[dens.length - 1].to, r.seats) - Math.min(dens[0].from, r.seats);
-    const unit = span > 600 ? 100 : span > 250 ? 50 : span > 100 ? 20 : 10;
+    // «круглый» шаг подписей, чтобы на оси было не больше ~8 делений
+    const unit = [10, 20, 25, 50, 100, 200, 250, 500, 1000].find((u) => span / u <= 8) ?? 1000;
     const xmin = Math.max(0, Math.floor((Math.min(dens[0].from, r.seats) - unit / 2) / unit) * unit);
     const xmax = Math.ceil((Math.max(dens[dens.length - 1].to, r.seats) + unit / 2) / unit) * unit;
     draw(canvas, {
@@ -134,7 +138,7 @@ export function renderDistribution(canvas, r) {
         data: {
             datasets: [
                 {
-                    label: "Спрос поместится в самолёт",
+                    label: "Поместятся",
                     data: step((x) => x <= r.seats),
                     borderColor: c.accent,
                     backgroundColor: c.accentSoft,
@@ -144,10 +148,10 @@ export function renderDistribution(canvas, r) {
                     spanGaps: false,
                 },
                 {
-                    label: "Спрос выше числа мест (не улетят)",
+                    label: "Не хватит мест",
                     data: step((x) => x > r.seats),
                     borderColor: c.over,
-                    backgroundColor: c.over + "55",
+                    backgroundColor: c.overSoft,
                     fill: "origin",
                     pointRadius: 0,
                     borderWidth: 1.5,
@@ -162,7 +166,7 @@ export function renderDistribution(canvas, r) {
                     pointRadius: 0,
                 },
                 {
-                    label: `Медиана «желают»: ${nf.format(r.wanted)}`,
+                    label: `Медиана: ${nf.format(r.wanted)}`,
                     data: [{ x: r.wanted, y: 0 }, { x: r.wanted, y: ymax }],
                     borderColor: c.text,
                     borderWidth: 1.5,
@@ -176,7 +180,7 @@ export function renderDistribution(canvas, r) {
             animation: { duration: 250 },
             parsing: false,
             plugins: {
-                legend: { labels: { color: c.text, boxWidth: 14 } },
+                legend: { position: "bottom", labels: { color: c.text, usePointStyle: true, pointStyle: "rectRounded", boxWidth: 10, boxHeight: 10, padding: 14, font: { size: 13 } } },
                 tooltip: {
                     filter: (item) => item.datasetIndex < 2,
                     callbacks: {
@@ -194,16 +198,16 @@ export function renderDistribution(canvas, r) {
                     type: "linear",
                     min: xmin,
                     max: xmax,
-                    ticks: { color: c.muted, stepSize: unit, maxTicksLimit: 12, callback: (v) => nf.format(Number(v)) },
+                    ticks: { color: c.muted, stepSize: unit, callback: (v) => nf.format(Number(v)) },
                     grid: { color: c.grid },
-                    title: { display: true, text: "сколько человек захотят купить билет по этой цене", color: c.muted },
+                    title: { display: true, text: "желающих купить", color: c.text },
                 },
                 y: {
                     min: 0,
                     suggestedMax: ymax,
                     ticks: { color: c.muted, maxTicksLimit: 7, callback: (v) => `${Number(v).toFixed(1)}%` },
                     grid: { color: c.grid },
-                    title: { display: true, text: "вероятность на 10 пассажиров", color: c.muted },
+                    title: { display: false },
                 },
             },
         },
