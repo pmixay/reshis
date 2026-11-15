@@ -20,3 +20,13 @@ python video/timeline.py                   # или: python video/timeline.py bu
 node video/render_video.cjs --out video/out/draft_no_voice.mp4
 node video/render_video.cjs --audio voice.m4a --out video/out/video.mp4
 ```
+
+## Обработка голоса
+
+1. Распознавание с метками слов (faster-whisper, модели medium и large-v3), поиск начала каждой из 10 частей.
+2. Монтаж: убраны тишина в начале и конце, длинные паузы сокращены (около 0,9 с между частями, 0,5 с внутри),
+   вырезано слово-паразит; точки склейки выбраны в самых тихих местах, на стыках короткие фейды.
+3. Звук (ffmpeg): `highpass=80 Гц` → шумоподавление `arnndn` (RNNoise, модель sh.rnnn, mix 0.8) →
+   эквалайзер (−2 дБ на 220 Гц против «бубнения», +2,5 дБ на 3,4 кГц для разборчивости, +1 дБ на 9 кГц) →
+   `deesser` → компрессор 3:1 → мягкий экспандер в паузах → `loudnorm` в два прохода до −16 LUFS, пик −1,5 dBFS.
+4. Тайминг страниц: смена станции за 0,6 с до начала каждой части (`build/timings.json`), затем `render_video.cjs --audio`.

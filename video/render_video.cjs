@@ -33,7 +33,7 @@ const STILLS = opt("--stills", null);
 
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   const ff = ["-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", String(tl.fps), "-c:v", "mjpeg", "-i", "-"];
-  if (AUDIO) ff.push("-i", AUDIO, "-map", "0:v", "-map", "1:a", "-c:a", "aac", "-b:a", "192k");
+  if (AUDIO) ff.push("-i", AUDIO, "-map", "0:v", "-map", "1:a", "-af", "apad", "-c:a", "aac", "-b:a", "192k", "-ar", "48000");
   ff.push("-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-shortest", OUT);
   const enc = spawn("ffmpeg", ff, { stdio: ["pipe", "inherit", "inherit"] });
   const write = (buf) => new Promise((res) => (enc.stdin.write(buf) ? res() : enc.stdin.once("drain", res)));
