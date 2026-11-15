@@ -17,7 +17,7 @@ async function caption(page, text) {
       el.id = "__demo_caption";
       Object.assign(el.style, {
         position: "fixed", left: "50%", bottom: "24px", transform: "translateX(-50%)", zIndex: 9999,
-        background: "rgba(15,23,42,.92)", color: "#fff", padding: "12px 20px", borderRadius: "12px",
+        background: "#4c1d95", color: "#fff", padding: "12px 20px", borderRadius: "12px",
         font: "600 18px Inter, Arial, sans-serif", maxWidth: "80%", textAlign: "center",
         boxShadow: "0 8px 24px rgba(0,0,0,.25)", pointerEvents: "none",
       });
@@ -30,7 +30,7 @@ async function caption(page, text) {
 const pause = (page, ms) => page.waitForTimeout(ms);
 
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ args: ["--lang=ru-RU"], env: { ...process.env, LANG: "ru_RU.UTF-8", LANGUAGE: "ru_RU:ru", LC_ALL: "ru_RU.UTF-8" } });
   const ctx = await browser.newContext({
     viewport: { width: 1280, height: 800 }, recordVideo: { dir: OUT, size: { width: 1280, height: 800 } },
     locale: "ru-RU", colorScheme: "light",
@@ -38,7 +38,7 @@ const pause = (page, ms) => page.waitForTimeout(ms);
   const page = await ctx.newPage();
   await page.goto(BASE);
   await page.waitForSelector("#auth-view:not([hidden])");
-  await caption(page, "«Решись Авиа» — прогноз продаж билетов. Без входа прогноз недоступен");
+  await caption(page, "Решись Авиа: прогноз продаж билетов. Прогноз доступен после входа");
   await pause(page, 3000);
 
   // Регистрация
@@ -59,11 +59,11 @@ const pause = (page, ms) => page.waitForTimeout(ms);
   await page.type("#register-form input[name=password2]", "secret2026", { delay: 50 });
   await page.click("#register-form button[type=submit]");
   await page.waitForSelector("#app-view:not([hidden])");
-  await caption(page, "Пользователь зарегистрирован и сразу вошёл в систему");
+  await caption(page, "Регистрация прошла, вход выполнен");
   await pause(page, 2500);
 
   // Прогноз 1: базовая цена, Сочи, 12 июня
-  await caption(page, "2. Вводим маршрут, дату вылета и цену билета");
+  await caption(page, "2. Маршрут, дата вылета и цена");
   await page.selectOption("#destination", "Сочи");
   await page.fill("#date", "2026-06-11");
   await page.fill("#price", "");
@@ -71,28 +71,28 @@ const pause = (page, ms) => page.waitForTimeout(ms);
   await pause(page, 800);
   await page.click("#submit-btn");
   await page.waitForSelector("#results:not([hidden])");
-  await caption(page, "Сразу видно: сколько мест, сколько билетов купят и сколько мест останется свободными");
+  await caption(page, "Места, продажи и свободные кресла");
   await pause(page, 4000);
   await page.locator("#chart-scenarios").scrollIntoViewIfNeeded();
-  await caption(page, "3. График сценариев: медиана = «желают купить», красная линия — число мест");
+  await caption(page, "3. Сценарии спроса и число мест");
   await pause(page, 4500);
   await page.locator("#chart-distribution").scrollIntoViewIfNeeded();
-  await caption(page, "Распределение спроса: оранжевая часть — спрос выше числа мест (продажи упираются в места)");
+  await caption(page, "Распределение спроса: жёлтая часть не поместится в самолёт");
   await pause(page, 4500);
   await page.click(".details summary");
   await page.locator(".details").scrollIntoViewIfNeeded();
-  await caption(page, "Таблица всех 9 сценариев прогноза");
+  await caption(page, "Все 9 сценариев прогноза");
   await pause(page, 3000);
 
   // Прогноз 2: рекомендуемая цена
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   await pause(page, 800);
-  await caption(page, "4. Кнопка «Рекомендуемая» ставит лучшую цену из ML-прогноза");
+  await caption(page, "4. «Рекомендуемая» ставит лучшую цену из прогноза");
   await page.click("#btn-rec-price");
   await pause(page, 3500);
 
   // Прогноз 3: высокая цена, Петербург
-  await caption(page, "Другой маршрут и цена: Москва — Санкт-Петербург, 7 000 ₽");
+  await caption(page, "Другой рейс: Москва → Санкт-Петербург, 7 000 ₽");
   await page.selectOption("#destination", "Санкт-Петербург");
   await page.fill("#date", "2026-06-20");
   await page.fill("#price", "");
@@ -100,7 +100,7 @@ const pause = (page, ms) => page.waitForTimeout(ms);
   await page.click("#submit-btn");
   await pause(page, 3500);
   await page.locator("#chart-scenarios").scrollIntoViewIfNeeded();
-  await caption(page, "Мест хватает при любом сценарии — самолёт заполнится лишь частично");
+  await caption(page, "Мест хватает при любом сценарии");
   await pause(page, 3500);
 
   // Ошибка ввода
@@ -112,27 +112,27 @@ const pause = (page, ms) => page.waitForTimeout(ms);
 
   // История
   await page.locator("#history-table").scrollIntoViewIfNeeded();
-  await caption(page, "5. История расчётов пользователя: клик по строке повторяет расчёт");
+  await caption(page, "5. История: клик по строке повторяет расчёт");
   await pause(page, 3000);
   await page.locator("#history-rows tr").last().click();
   await pause(page, 2500);
 
   // Выход и вход
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
-  await caption(page, "6. Выход и повторный вход (авторизация)");
+  await caption(page, "6. Выход и повторный вход");
   await pause(page, 1200);
   await page.click("#logout-btn");
   await page.waitForSelector("#auth-view:not([hidden])");
   await page.type("#login-form input[name=login]", login, { delay: 50 });
   await page.type("#login-form input[name=password]", "wrongpass1", { delay: 50 });
   await page.click("#login-form button[type=submit]");
-  await caption(page, "Неверный пароль — вход не выполнен");
+  await caption(page, "Неверный пароль: вход не выполнен");
   await pause(page, 2500);
   await page.fill("#login-form input[name=password]", "");
   await page.type("#login-form input[name=password]", "secret2026", { delay: 50 });
   await page.click("#login-form button[type=submit]");
   await page.waitForSelector("#app-view:not([hidden])");
-  await caption(page, "Вход выполнен: история расчётов сохранилась");
+  await caption(page, "Вход выполнен, история сохранилась");
   await pause(page, 3000);
 
   const video = page.video();
