@@ -117,8 +117,8 @@ function updatePriceHint() {
     price.min = "1";
     price.placeholder = String(r.base_price);
     $("price-hint").textContent =
-        `Базовая цена ${rub(r.base_price)} · обычный диапазон ${rub(r.price_min)} – ${rub(r.price_max)} · ` +
-            `+1 000 ₽ к цене ≈ −${nf.format(r.price_sensitivity * 1000)} желающих`;
+        `Базовая цена ${rub(r.base_price)}, обычный диапазон от ${rub(r.price_min)} до ${rub(r.price_max)}. ` +
+            `Каждые +1 000 ₽ к цене: примерно на ${nf.format(r.price_sensitivity * 1000)} желающих меньше`;
 }
 function initForm(m) {
     const origins = [...new Set(m.routes.map((r) => r.origin))];
@@ -188,7 +188,7 @@ async function runForecast() {
     catch (err) {
         if (err instanceof ApiError && err.status === 401) {
             show("auth");
-            setError("auth-error", "Сессия истекла — войдите снова");
+            setError("auth-error", "Сессия истекла, войдите снова");
             return;
         }
         setError("form-error", err.message);
@@ -203,7 +203,7 @@ function renderResult(r) {
     $("results-empty").hidden = true;
     $("results").hidden = false;
     $("res-title").textContent = `${r.route.origin} → ${r.route.destination}`;
-    $("res-subtitle").textContent = `${fmtDate(r.date)} · цена билета ${rub(r.price)}`;
+    $("res-subtitle").textContent = `${fmtDate(r.date)}, цена билета ${rub(r.price)}`;
     $("kpi-seats").textContent = nf.format(r.seats);
     $("kpi-sold").textContent = nf.format(r.sold);
     $("kpi-free").textContent = nf.format(r.free_seats);
@@ -214,14 +214,14 @@ function renderResult(r) {
     $("kpi-sellout").textContent = sp.bound === "gt" ? `> ${pct(sp.p)}` : sp.bound === "lt" ? `< ${pct(sp.p)}` : pct(sp.p);
     $("kpi-revenue").textContent = money(r.revenue);
     $("kpi-profit").textContent = money(r.profit);
-    $("kpi-rec").textContent = r.recommended_price ? rub(r.recommended_price) : "—";
+    $("kpi-rec").textContent = r.recommended_price ? rub(r.recommended_price) : "нет данных";
     $("btn-rec-price").disabled = !r.recommended_price;
     const note = $("res-note");
     note.className = "note";
     if (r.sold >= r.seats) {
         note.classList.add("note-warn");
         note.textContent = `Продажи упираются в число мест: желающих ${nf.format(Math.round(r.wanted))}, а мест ${nf.format(r.seats)}. ` +
-            `Цену можно поднять — самолёт всё равно заполнится.`;
+            `Цену можно поднять: самолёт всё равно заполнится.`;
     }
     else if (r.sold === 0) {
         note.classList.add("note-bad");
@@ -229,7 +229,7 @@ function renderResult(r) {
     }
     else if (r.recommended_price && Math.abs(r.price - r.recommended_price) / r.recommended_price > 0.15) {
         note.classList.add("note-info");
-        note.textContent = `Рекомендуемая цена для медианного сценария — ${rub(r.recommended_price)}: при ней прибыль по прогнозу выше.`;
+        note.textContent = `Рекомендуемая цена для медианного сценария: ${rub(r.recommended_price)}. При ней прибыль по прогнозу выше.`;
     }
     else {
         note.classList.add("note-ok");
@@ -246,7 +246,7 @@ function renderResult(r) {
             nf.format(Math.max(0, Math.round(s.wanted))),
             nf.format(s.sold),
             s.sold >= r.seats ? "да" : "нет",
-            s.best_price ? rub(s.best_price) : "—",
+            s.best_price ? rub(s.best_price) : "",
         ];
         cells.forEach((c) => {
             const td = document.createElement("td");
@@ -276,7 +276,7 @@ function renderHistory(items) {
         tr.tabIndex = 0;
         tr.title = "Повторить расчёт";
         const [o, d] = it.name.split(" — ");
-        [it.name, new Date(`${it.flight_date}T00:00:00`).toLocaleDateString("ru-RU"), rub(it.price), `${nf.format(it.sold)} / ${nf.format(it.seats)}`]
+        [`${o} → ${d}`, new Date(`${it.flight_date}T00:00:00`).toLocaleDateString("ru-RU"), rub(it.price), `${nf.format(it.sold)} / ${nf.format(it.seats)}`]
             .forEach((c) => {
             const td = document.createElement("td");
             td.textContent = c;

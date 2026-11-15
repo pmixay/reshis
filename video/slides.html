@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Решись Авиа: видео о решении</title>
+<script src="../dev/static/vendor/chart.umd.min.js"></script>
+<script src="build/data.js"></script>
+<style>
+  :root {
+    --bg: #f5f7fa; --surface: #ffffff; --border: #dfe5ee; --text: #0f172a; --muted: #1f2a3c;
+    --accent: #1d4ed8; --accent-soft: #dbe6ff; --orange: #f97316; --orange-soft: #ffedd5;
+    --red: #dc2626; --green: #15803d; --green-soft: #dcfce7; --purple: #7c3aed;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+  body { font-family: Inter, Arial, sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+  .scene { display: none; width: 1920px; height: 1080px; flex-direction: column; }
+  .scene.on { display: flex; }
+
+  .top { height: 96px; background: var(--surface); border-bottom: 1px solid var(--border);
+         display: flex; align-items: center; justify-content: space-between; padding: 0 96px; flex: none; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .mark { width: 48px; height: 48px; border-radius: 12px; background: var(--accent); display: grid; place-items: center; }
+  .mark svg { width: 28px; height: 28px; fill: #fff; }
+  .brand b { font-size: 24px; display: block; }
+  .brand span { font-size: 20px; color: var(--text); }
+  .nav { display: flex; gap: 10px; }
+  .nav div { font-size: 20px; font-weight: 600; color: var(--text); padding: 10px 18px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); }
+  .nav div.cur { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .body { flex: 1; padding: 56px 96px 64px; display: flex; flex-direction: column; min-height: 0; }
+  .eyebrow { font-size: 20px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+  h1 { font-size: 56px; line-height: 1.12; margin: 0 0 12px; letter-spacing: -.01em; }
+  h2 { font-size: 30px; margin: 0 0 18px; }
+  .lead { font-size: 28px; color: var(--text); margin: 0 0 36px; line-height: 1.45; max-width: 1500px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; flex: 1; min-height: 0; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .muted { color: var(--muted); }
+  .big { font-size: 64px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+  .kpi-label { font-size: 24px; font-weight: 600; color: var(--text); margin-bottom: 14px; }
+  .kpi-note { font-size: 24px; color: var(--text); margin-top: 14px; line-height: 1.4; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+  .acc { color: var(--accent); }
+  ul.clean { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+  ul.clean li { font-size: 25px; line-height: 1.35; padding-left: 40px; position: relative; }
+  ul.clean li::before { content: ""; position: absolute; left: 0; top: 9px; width: 18px; height: 18px; border-radius: 5px; background: var(--accent); }
+  .chart { position: relative; flex: 1; min-height: 0; }
+  .callout { margin-top: 24px; background: var(--accent-soft); color: #1e3a8a; border-radius: 14px; padding: 18px 24px; font-size: 24px; font-weight: 600; }
+
+  table.cmp { width: 100%; border-collapse: collapse; font-size: 25px; }
+  table.cmp th, table.cmp td { padding: 18px 16px; border-bottom: 1px solid var(--border); text-align: left; }
+  table.cmp th { font-size: 24px; color: var(--text); font-weight: 700; }
+  table.cmp td.n { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  table.cmp tr.total td { font-weight: 800; font-size: 30px; border-bottom: 0; }
+  .tag { display: inline-block; font-size: 21px; font-weight: 700; padding: 6px 12px; border-radius: 8px; }
+  .tag.red { background: #fee2e2; color: var(--red); }
+  .tag.green { background: var(--green-soft); color: var(--green); }
+  .tag.blue { background: var(--accent-soft); color: var(--accent); }
+
+  /* титул и финал */
+  .center { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .block-card { padding: 36px; }
+  .block-card .num { width: 56px; height: 56px; border-radius: 14px; background: var(--accent); color: #fff; font-size: 28px; font-weight: 800; display: grid; place-items: center; margin-bottom: 24px; }
+  .block-card h3 { font-size: 32px; margin: 0 0 10px; }
+  .block-card p { font-size: 25px; color: var(--text); margin: 0; line-height: 1.4; }
+  .done { display: inline-flex; align-items: center; gap: 10px; margin-top: 20px; font-size: 20px; font-weight: 700; color: var(--green); }
+  .done i { width: 26px; height: 26px; border-radius: 50%; background: var(--green); display: inline-grid; place-items: center; color: #fff; font-style: normal; font-size: 16px; }
+
+  /* разработка */
+  .dev-wrap { display: grid; grid-template-columns: 560px 1fr; gap: 40px; flex: 1; }
+  .frame { width: 1136px; height: 710px; border-radius: 16px; border: 1px solid var(--border); background: #e9edf3; overflow: hidden; }
+  .chip { display: inline-block; font-size: 25px; font-weight: 600; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; margin: 0 10px 12px 0; }
+  .tools h3 { font-size: 30px; margin: 0 0 18px; }
+  .ai-banner { margin-top: 32px; display: flex; align-items: center; gap: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 32px; font-size: 25px; line-height: 1.4; }
+  .ai-banner .mark { width: 64px; height: 64px; flex: none; }
+  .learn .num { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 18px; }
+  .learn h3 { font-size: 34px; margin: 0 0 14px; line-height: 1.2; }
+  .learn p { font-size: 27px; color: var(--text); margin: 0; line-height: 1.45; }
+</style>
+</head>
+<body>
+
+<template id="topbar">
+  <div class="top">
+    <div class="brand">
+      <div class="mark"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></div>
+      <div><b>Решись Авиа</b><span>Решение кейса о динамическом ценообразовании</span></div>
+    </div>
+    <div class="nav"><div data-k="bia">Бизнес и аналитика</div><div data-k="ml">Искусственный интеллект</div><div data-k="dev">Разработка</div><div data-k="sum">Итоги</div></div>
+  </div>
+</template>
+
+<!-- 1. Вступление -->
+<section class="scene" id="s1" data-nav="">
+  <div class="body"><div class="center">
+    <div class="eyebrow">Кейс «Решись Авиа»</div>
+    <h1>Динамическое ценообразование авиабилетов</h1>
+    <p class="lead">Решены все три блока: от математической модели до прогноза спроса и работающего сервиса.</p>
+    <div class="grid3">
+      <div class="card block-card"><div class="num">1</div><h3>Бизнес и аналитика</h3><p>Модель дня самолёта, лучшие цены, маршрут, риск снегопада, выводы</p><div class="done"><i>✓</i>Выполнено</div></div>
+      <div class="card block-card"><div class="num">2</div><h3>Искусственный интеллект</h3><p>Прогноз спроса в AutoGluon с 1 июня по 1 июля 2026 и лучшие цены</p><div class="done"><i>✓</i>Выполнено</div></div>
+      <div class="card block-card"><div class="num">3</div><h3>Разработка</h3><p>Веб-сервис с backend, графиками, регистрацией и входом</p><div class="done"><i>✓</i>Выполнено</div></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 2. БиА: модель и пиковый день -->
+<section class="scene" id="s2" data-nav="bia">
+  <div class="body">
+    <div class="eyebrow">Бизнес и аналитика</div>
+    <h1>Модель одного дня самолёта</h1>
+    <p class="lead">Цены, билеты и перелёты связаны ограничениями: 150 кресел, не больше 4 перелётов, транзит не дороже двух прямых билетов.</p>
+    <div class="grid2" style="grid-template-columns: 0.85fr 1.15fr">
+      <div class="card" style="display:flex;flex-direction:column">
+        <h2>Пиковый день: загрузка перелётов</h2>
+        <svg viewBox="0 0 760 420" style="width:100%;flex:1">
+          <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5b6678"/></marker>
+                <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs>
+          <line x1="150" y1="110" x2="345" y2="196" stroke="#dc2626" stroke-width="7" marker-end="url(#arr)"/>
+          <line x1="352" y1="234" x2="160" y2="150" stroke="#94a3b8" stroke-width="4" marker-end="url(#ar)"/>
+          <line x1="430" y1="200" x2="600" y2="300" stroke="#94a3b8" stroke-width="4" marker-end="url(#ar)"/>
+          <line x1="596" y1="336" x2="420" y2="236" stroke="#94a3b8" stroke-width="4" marker-end="url(#ar)"/>
+          <circle cx="110" cy="100" r="58" fill="#1d4ed8"/><text x="110" y="113" text-anchor="middle" font-size="40" font-weight="800" fill="#fff">П</text>
+          <circle cx="390" cy="220" r="58" fill="#7c3aed"/><text x="390" y="233" text-anchor="middle" font-size="40" font-weight="800" fill="#fff">М</text>
+          <circle cx="640" cy="330" r="58" fill="#f97316"/><text x="640" y="343" text-anchor="middle" font-size="40" font-weight="800" fill="#fff">С</text>
+          <text x="245" y="70" font-size="26" font-weight="800" fill="#dc2626">П→М: 150 из 150</text>
+          <text x="20" y="250" font-size="27" font-weight="600" fill="#0f172a">М→П: 100 из 150</text>
+          <text x="525" y="200" font-size="27" font-weight="600" fill="#0f172a">М→С: 70 из 150</text>
+          <text x="330" y="380" font-size="27" font-weight="600" fill="#0f172a">С→М: 70 из 150</text>
+        </svg>
+        <div class="callout">Кресло на рейсе П→М стоит 4 тыс. ₽</div>
+      </div>
+      <div class="card">
+        <h2>Лучшие цены и прибыль</h2>
+        <table class="cmp">
+          <tr><th></th><th style="text-align:right">Обычный день</th><th style="text-align:right">Пиковый день</th></tr>
+          <tr><td>Билет Петербург → Москва</td><td class="n">5,5 тыс.</td><td class="n acc">11,5 тыс.</td></tr>
+          <tr><td>Транзит Петербург → Сочи</td><td class="n">6 тыс.</td><td class="n acc">8 тыс.</td></tr>
+          <tr><td>Загрузка рейса П→М</td><td class="n">130 из 150</td><td class="n">150 из 150</td></tr>
+          <tr><td>Ограничение по креслам</td><td class="n"><span class="tag green">не мешает</span></td><td class="n"><span class="tag red">определяет цены</span></td></tr>
+          <tr class="total"><td>Прибыль за день</td><td class="n">705 тыс. ₽</td><td class="n">1 625 тыс. ₽</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. БиА: маршрут и снегопад -->
+<section class="scene" id="s3" data-nav="bia">
+  <div class="body">
+    <div class="eyebrow">Бизнес и аналитика</div>
+    <h1>Маршрут и риск снегопада</h1>
+    <p class="lead">Решения проверены численно: оптимизация и перебор всех маршрутов в отдельном скрипте.</p>
+    <div class="grid2">
+      <div class="card">
+        <div class="kpi-label">Предложение: летать П→М→П→М→П без Сочи</div>
+        <div class="big neg">-335 тыс. ₽</div>
+        <div class="kpi-note">Прибыль пикового дня 1 290 тыс. вместо 1 625 тыс.</div>
+        <table class="cmp" style="margin-top:28px">
+          <tr><td>Второй рейс в Москву</td><td class="n pos">+80 тыс.</td></tr>
+          <tr><td>Потеря рынков Сочи и транзита</td><td class="n neg">-415 тыс.</td></tr>
+          <tr class="total"><td>Итог</td><td class="n neg">-335 тыс.</td></tr>
+        </table>
+        <div class="callout">Вывод: предложение невыгодно</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label">Снегопад с вероятностью 0,2: возврат денег и компенсация 4 тыс.</div>
+        <div class="big pos">+20 тыс. ₽</div>
+        <div class="kpi-note">Средняя прибыль 328 тыс. вместо 308 тыс. при старых ценах</div>
+        <table class="cmp" style="margin-top:28px">
+          <tr><td>Риск в затратах на билет</td><td class="n">+1 тыс.</td></tr>
+          <tr><td>Цены на всех рынках</td><td class="n">+0,5 тыс.</td></tr>
+          <tr class="total"><td>Продано билетов</td><td class="n">320 → 270</td></tr>
+        </table>
+        <div class="callout">Вывод: при риске выгодно продавать меньше и дороже</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. ИИ: данные -->
+<section class="scene" id="s4" data-nav="ml">
+  <div class="body">
+    <div class="eyebrow">Искусственный интеллект</div>
+    <h1>Сначала данные: праздники и аномалии</h1>
+    <div class="grid2" style="grid-template-columns: 1.55fr 1fr">
+      <div class="card" style="display:flex;flex-direction:column">
+        <h2>Майские праздники 2025: спрос по дням</h2>
+        <div class="chart"><canvas id="c-hol"></canvas></div>
+      </div>
+      <div style="display:grid;grid-template-rows:auto 1fr;gap:32px;min-height:0">
+        <div class="card">
+          <ul class="clean">
+            <li>Перед праздниками туристические направления растут в 1,5 раза</li>
+            <li>Деловой Петербург в праздники падает почти вдвое</li>
+            <li>Эти даты известны заранее, значит, это признаки для модели</li>
+          </ul>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;min-height:0">
+          <h2 style="font-size:24px;margin-bottom:8px">Сочи, июль 2023: разовый провал</h2>
+          <div class="chart"><canvas id="c-out"></canvas></div>
+          <div class="kpi-note" style="margin-top:6px">9 дней почти без спроса. Убран из обучения как шум</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5a. ИИ: модели -->
+<section class="scene" id="s5a" data-nav="ml">
+  <div class="body">
+    <div class="eyebrow">Искусственный интеллект</div>
+    <h1>Модели AutoGluon: точность и скорость</h1>
+    <div class="grid2" style="grid-template-columns: 1.5fr 1fr">
+      <div class="card" style="display:flex;flex-direction:column">
+        <h2>Ошибка на валидации (MAE, пассажиров) и время</h2>
+        <div class="chart"><canvas id="c-models"></canvas></div>
+      </div>
+      <div class="card">
+        <ul class="clean">
+          <li>3 конфигурации, 3 окна валидации, метрика MAE, 9 сценариев спроса</li>
+          <li>Признаки праздников: ошибка табличных моделей ниже на 7%</li>
+          <li>Выбрана Chronos-2: 5 секунд вместо 18 минут у ансамбля</li>
+          <li>Её сценарии реалистичны, а это нужно для расчёта цены</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5b. ИИ: результат -->
+<section class="scene" id="s5b" data-nav="ml">
+  <div class="body">
+    <div class="eyebrow">Искусственный интеллект</div>
+    <h1>Прогноз на июнь и проверка на тесте</h1>
+    <div class="grid2" style="grid-template-columns: 1.5fr 1fr">
+      <div class="card" style="display:flex;flex-direction:column">
+        <h2>Москва → Сочи: факт мая и прогноз на июнь</h2>
+        <div class="chart"><canvas id="c-june"></canvas></div>
+      </div>
+      <div style="display:grid;grid-template-rows:repeat(3,1fr);gap:24px">
+        <div class="card"><div class="kpi-label">Ошибка на тесте (май 2026)</div><div class="big">40 <span style="font-size:32px">пасс.</span></div></div>
+        <div class="card"><div class="kpi-label">Ошибка относительно спроса</div><div class="big">7,8%</div></div>
+        <div class="card"><div class="kpi-label">Факт внутри интервала сценариев</div><div class="big">82% <span style="font-size:32px">дней</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Разработка (видео вставляется в рамку при сборке) -->
+<section class="scene" id="s6" data-nav="dev">
+  <div class="body">
+    <div class="eyebrow">Разработка</div>
+    <h1>Сервис прогноза продаж</h1>
+    <div class="dev-wrap">
+      <div class="card">
+        <ul class="clean">
+          <li>Самый сложный вариант: API на FastAPI и страница на TypeScript</li>
+          <li>Маршрут, дата и цена: места, продажи, свободные кресла</li>
+          <li>Графики сценариев и распределения спроса</li>
+          <li>Регистрация, вход и история расчётов</li>
+          <li>Docker для хостинга, 19 автотестов</li>
+        </ul>
+      </div>
+      <div class="frame" id="frame"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Инструменты -->
+<section class="scene" id="s7" data-nav="sum">
+  <div class="body" style="justify-content:center">
+    <div class="eyebrow">Итоги</div>
+    <h1>Инструменты</h1>
+    <div class="grid3 tools" style="margin-top:12px">
+      <div class="card"><h3>Бизнес и аналитика</h3><span class="chip">Python</span><span class="chip">NumPy</span><span class="chip">SciPy</span><span class="chip">Playwright для PDF</span></div>
+      <div class="card"><h3>Искусственный интеллект</h3><span class="chip">pandas</span><span class="chip">AutoGluon</span><span class="chip">Chronos-2</span><span class="chip">matplotlib</span><span class="chip">Jupyter</span></div>
+      <div class="card"><h3>Разработка</h3><span class="chip">FastAPI</span><span class="chip">SQLite</span><span class="chip">TypeScript</span><span class="chip">Chart.js</span><span class="chip">Docker</span><span class="chip">pytest</span></div>
+    </div>
+    <div class="ai-banner">
+      <div class="mark"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>
+      <div><b>ИИ-агент Claude Code от Anthropic</b><br><span>помогал писать и проверять код, отчёт и вёрстку. Цифры и решения перепроверены вручную</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Чему научился -->
+<section class="scene" id="s8" data-nav="sum">
+  <div class="body" style="justify-content:center">
+    <div class="eyebrow">Итоги</div>
+    <h1>Чему я научился</h1>
+    <div class="grid4" style="margin-top:28px;min-height:420px">
+      <div class="card learn"><div class="num">01</div><h3>У ограниченного ресурса есть цена</h3><p>Теневая цена кресла объясняет, почему транзит дешевле прямого билета</p></div>
+      <div class="card learn"><div class="num">02</div><h3>Риск можно перевести в затраты</h3><p>Возможная компенсация увеличивает затраты на билет и сдвигает цену</p></div>
+      <div class="card learn"><div class="num">03</div><h3>Лучшая модель не обязательно самая точная</h3><p>Важны скорость и качество сценариев, а тест нельзя использовать для выбора</p></div>
+      <div class="card learn"><div class="num">04</div><h3>Продукт целиком</h3><p>От данных и модели до сайта с регистрацией, входом и графиками</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9. Финал -->
+<section class="scene" id="s9" data-nav="sum">
+  <div class="body"><div class="center" style="align-items:center;text-align:center">
+    <div class="eyebrow">Итоги</div>
+    <h1>Все три блока выполнены</h1>
+    <div style="display:flex;gap:16px;margin:24px 0 40px">
+      <span class="tag green" style="font-size:24px;padding:12px 20px">✓ Бизнес и аналитика</span>
+      <span class="tag green" style="font-size:24px;padding:12px 20px">✓ Искусственный интеллект</span>
+      <span class="tag green" style="font-size:24px;padding:12px 20px">✓ Разработка</span>
+    </div>
+    <p class="lead" style="margin:0 0 12px">Код и материалы: github.com/pmixay/reshis</p>
+    <div class="big acc" style="margin-top:28px">Спасибо!</div>
+  </div></div>
+</section>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const id = params.get("scene") || "s1";
+  const tpl = document.getElementById("topbar");
+  document.querySelectorAll(".scene").forEach((s) => {
+    const top = tpl.content.cloneNode(true);
+    const k = s.dataset.nav;
+    top.querySelectorAll(".nav div").forEach((d) => { if (d.dataset.k === k) d.classList.add("cur"); });
+    s.prepend(top);
+  });
+  document.getElementById(id).classList.add("on");
+
+  const V = window.VDATA;
+  const C = { accent: "#1d4ed8", soft: "#bfd3ff", orange: "#f97316", red: "#dc2626", grid: "#e8ecf2", muted: "#1f2a3c", text: "#0f172a" };
+  Chart.defaults.font.family = "Inter, Arial, sans-serif";
+  Chart.defaults.font.size = 21;
+  Chart.defaults.color = C.muted;
+  Chart.defaults.animation = false;
+  Chart.defaults.locale = "ru-RU";
+  Chart.defaults.maintainAspectRatio = false;
+  Chart.defaults.plugins.legend.labels.boxWidth = 18;
+  Chart.defaults.plugins.legend.labels.color = C.text;
+  const shadePlugin = (labels) => ({
+    id: "shade",
+    beforeDatasetsDraw(chart) {
+      const { ctx, chartArea, scales } = chart;
+      ctx.save(); ctx.fillStyle = "#fff4e6";
+      labels.forEach((l) => {
+        const i = chart.data.labels.indexOf(l); if (i < 0) return;
+        const x = scales.x.getPixelForValue(i), w = (chartArea.right - chartArea.left) / chart.data.labels.length;
+        ctx.fillRect(x - w / 2, chartArea.top, w, chartArea.bottom - chartArea.top);
+      });
+      ctx.restore();
+    },
+  });
+
+  if (id === "s4") {
+    new Chart(document.getElementById("c-hol"), {
+      type: "line",
+      data: { labels: V.holidays.labels, datasets: [
+        { label: "Москва → Сочи (туристический)", data: V.holidays.aer, borderColor: C.orange, borderWidth: 3, pointRadius: 0 },
+        { label: "Москва → Петербург (деловой)", data: V.holidays.led, borderColor: C.accent, borderWidth: 3, pointRadius: 0 },
+      ] },
+      options: { plugins: { legend: { position: "top", align: "start" } },
+        scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 9 } }, y: { grid: { color: C.grid }, title: { display: true, text: "пассажиров в день" } } } },
+      plugins: [shadePlugin(V.holidays.shade)],
+    });
+    new Chart(document.getElementById("c-out"), {
+      type: "line",
+      data: { labels: V.outage.labels, datasets: [{ data: V.outage.aer, borderColor: C.orange, borderWidth: 3, pointRadius: 0 }] },
+      options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } }, y: { grid: { color: C.grid }, ticks: { maxTicksLimit: 4 } } } },
+    });
+  }
+  if (id === "s5a") {
+    const m = V.models;
+    new Chart(document.getElementById("c-models"), {
+      type: "bar",
+      data: { labels: m.map((x) => x.name), datasets: [{ data: m.map((x) => x.mae),
+        backgroundColor: m.map((x) => (x.chosen ? C.accent : "#cbd5e1")), borderRadius: 6, barPercentage: 0.7 }] },
+      options: { indexAxis: "y", plugins: { legend: { display: false } },
+        layout: { padding: { right: 170 } },
+        scales: { x: { min: 0, max: 55, grid: { color: C.grid } }, y: { grid: { display: false }, ticks: { color: C.text, font: { size: 20 } } } } },
+      plugins: [{ id: "lbl", afterDatasetsDraw(chart) {
+        const { ctx } = chart; const meta = chart.getDatasetMeta(0);
+        ctx.save(); ctx.font = "600 20px Inter, Arial"; ctx.textBaseline = "middle";
+        meta.data.forEach((bar, i) => { ctx.fillStyle = m[i].chosen ? C.accent : C.text;
+          ctx.fillText(`${m[i].mae.toFixed(1).replace(".", ",")}   ${m[i].time}`, bar.x + 14, bar.y); });
+        ctx.restore(); } }],
+    });
+  }
+  if (id === "s5b") {
+    const j = V.june;
+    new Chart(document.getElementById("c-june"), {
+      type: "line",
+      data: { labels: j.labels, datasets: [
+        { label: "Сценарий 0,1", data: j.q1, borderColor: "transparent", pointRadius: 0, fill: false, order: 10 },
+        { label: "Сценарии от 0,1 до 0,9", data: j.q9, borderColor: "transparent", backgroundColor: "#dbe6ff", pointRadius: 0, fill: "-1", order: 9 },
+        { label: "Прогноз (медиана)", data: j.q5, borderColor: C.accent, borderWidth: 3.5, pointRadius: 0, order: 1 },
+        { label: "Факт мая", data: j.fact, borderColor: C.text, borderWidth: 3, pointRadius: 0, order: 1 },
+        { label: `Мест в самолётах: ${j.seats}`, data: j.labels.map(() => j.seats), borderColor: C.red, borderDash: [10, 6], borderWidth: 2.5, pointRadius: 0, order: 0 },
+      ] },
+      options: { plugins: { legend: { position: "top", align: "start", labels: { filter: (it) => it.datasetIndex !== 0 } } },
+        scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }, y: { grid: { color: C.grid }, title: { display: true, text: "пассажиров в день" } } } },
+    });
+  }
+  document.body.dataset.ready = "1";
+</script>
+</body>
+</html>

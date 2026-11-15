@@ -23,3 +23,8 @@ dev/data/app.sqlite3
 business_analytics/report/.rendered.html
 .DS_Store
 submission/
+
+# Видео: промежуточные файлы сборки и результат (большие)
+video/build/
+video/out/
+video/assets/
